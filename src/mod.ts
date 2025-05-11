@@ -1,9 +1,9 @@
 import { Bot, Context, InlineKeyboard, session, SessionFlavor } from "grammy";
 import { DenoKVAdapter } from "grammy/storages/denokv";
-import { getReply, removeReply, setReply } from "./db.ts";
+import { getReply, setReply } from "./db.ts";
 
 interface SessionData {
-  status?: "anon" | "signed" | "reply";
+  status?: "msg";
 }
 
 type BotContext = Context & SessionFlavor<SessionData>;
@@ -19,74 +19,53 @@ bot.use(session(
 ));
 
 bot.chatType("private").command("start", async (ctx) => {
-  ctx.session.status = undefined;
   const reply_markup = new InlineKeyboard()
-    .text("Отправить анонимное сообщение", "anon")
-    .row()
-    .text("Отправить подписанное сообщение", "signed");
+    .text("Анонимное сообщение", "msg");
 
-  await ctx.reply(
-    "Доброго времени суток! Это бот для контакта @constant0fps, выбери способ контакта",
-    { reply_markup },
-  );
+  await ctx.reply("Это бот @constant0fps", { reply_markup });
 });
 
-bot.chatType("private").callbackQuery("anon", async (ctx) => {
-  ctx.session.status = "anon";
-  await ctx.reply("Напиши сообщение, которое нужно отправить");
+bot.chatType("private").callbackQuery("msg", async (ctx) => {
+  ctx.session.status = "msg";
+  await ctx.reply("Жду сообщения");
 });
 
-bot.chatType("private").callbackQuery("signed", async (ctx) => {
-  ctx.session.status = "signed";
-  await ctx.reply("Напиши сообщение, которое нужно отправить");
-});
-
-const isAuthor = (ctx: BotContext) => ctx.from?.id == authorId;
-bot.chatType("private").filter(isAuthor)
-  .callbackQuery(/reply:.+_.+/, async (ctx) => {
-    const ids = ctx.callbackQuery.data.split(":")[1].split("_");
-    const chatId = Number(ids[0]), msgId = Number(ids[1]);
-
-    await setReply(chatId, msgId);
-    ctx.session.status = "reply";
-    await ctx.reply("Жду ответа");
-  });
-
-bot.chatType("private").filter(isAuthor)
-  .filter((ctx) => ctx.session.status == "reply")
+bot.chatType("private")
+  .filter((ctx) => ctx.session.status == "msg")
   .on("msg:text", async (ctx) => {
     ctx.session.status = undefined;
-    const reply = await getReply();
-    if (!reply) return;
-    await ctx.api.sendMessage(
-      reply.chatId,
-      `Ответ автора:\n<blockquote>${ctx.msg.text}</blockquote>`,
-      { reply_parameters: { message_id: reply.msgId }, parse_mode: "HTML" },
+    const msg = await ctx.api.sendMessage(
+      authorId,
+      `Новое анонимное сообщение:\n<blockquote>${ctx.msg.text}</blockquote>`,
+      { parse_mode: "HTML" },
     );
-    await ctx.reply("Ответ отправлен.");
-    await removeReply();
+    await setReply(
+      msg.chat.id,
+      msg.message_id,
+      ctx.chat.id,
+      ctx.msg.message_id,
+    );
+    await ctx.reply("Сообщение отправлено");
   });
 
-bot.chatType("private").on("msg:text", async (ctx) => {
-  if (!ctx.session.status) {
-    await ctx.reply("Укажи тип сообщения с помощью /start");
-    return;
-  }
-  const reply_markup = new InlineKeyboard()
-    .text("Ответить", `reply:${ctx.from.id}_${ctx.msgId}`);
+const isReply = (ctx: BotContext) =>
+  ctx.chat?.type == "private" && ctx.message?.reply_to_message != undefined;
 
-  await ctx.api.sendMessage(
-    authorId,
-    `Новое сообщение${
-      ctx.session.status == "anon"
-        ? " (анонимное)"
-        : ` от @${ctx.from.username}`
-    }:\n<blockquote>${ctx.message.text}</blockquote>`,
-    { reply_markup, parse_mode: "HTML" },
+bot.filter(isReply).on("msg:text", async (ctx) => {
+  const reply_msg = ctx.message?.reply_to_message;
+  if (!reply_msg) return;
+  const reply = await getReply(reply_msg.chat.id, reply_msg.message_id);
+  if (!reply) return;
+
+  const msg = await ctx.api.sendMessage(
+    reply.chatId,
+    `<blockquote>${ctx.msg.text}</blockquote>`,
+    {
+      parse_mode: "HTML",
+      reply_parameters: { message_id: reply.msgId },
+    },
   );
-
-  ctx.session.status = undefined;
-  await ctx.reply("Сообщение отправлено.");
+  await setReply(msg.chat.id, msg.message_id, ctx.chat.id, ctx.msg.message_id);
 });
 
 bot.catch(console.error);
