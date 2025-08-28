@@ -18,6 +18,11 @@ bot.use(session(
   },
 ));
 
+bot.chatType("private").command("ping", async (ctx) => {
+  await ctx.reply("pong");
+  await ctx.reply(ctx.from.id);
+});
+
 bot.chatType("private").command("start", async (ctx) => {
   const reply_markup = new InlineKeyboard()
     .text("Анонимное сообщение", "msg");
