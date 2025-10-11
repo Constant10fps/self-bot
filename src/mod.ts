@@ -18,9 +18,19 @@ bot.use(session(
   },
 ));
 
+bot.chatType("group").on("message", async (ctx) => {
+  if (ctx.from.id < 0) {
+    await ctx.deleteMessage();
+  }
+});
+
 bot.chatType("private").command("ping", async (ctx) => {
   await ctx.reply("pong");
-  await ctx.reply(ctx.from.id);
+  await ctx.api.sendMessage(
+    ctx.chat.id,
+    `your id: ${ctx.from.id}, [${ctx.from.first_name}](tg://user?id=${ctx.from.id})`,
+    { parse_mode: "Markdown" },
+  );
 });
 
 bot.chatType("private").command("start", async (ctx) => {
