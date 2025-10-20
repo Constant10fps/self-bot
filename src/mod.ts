@@ -18,6 +18,10 @@ bot.use(session(
   },
 ));
 
+bot.chatType("group").command("duty@moyaey", async (ctx) => {
+  await ctx.reply("Сегодня дежурит Моисеев Артем и Моисеев Артем");
+});
+
 bot.chatType("group").on("message", async (ctx) => {
   if (ctx.from.id < 0) {
     await ctx.deleteMessage();
