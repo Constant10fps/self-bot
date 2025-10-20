@@ -87,8 +87,4 @@ bot.filter(isReply).on("msg:text", async (ctx) => {
   await setReply(msg.chat.id, msg.message_id, ctx.chat.id, ctx.msg.message_id);
 });
 
-bot.api.setMyCommands([
-  { command: "duty@moyaey", description: "сделать моисеева дежурным" }
-]);
-
 bot.catch(console.error);
