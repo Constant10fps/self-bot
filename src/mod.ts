@@ -19,7 +19,7 @@ bot.use(session(
 ));
 
 bot.chatType(["group", "supergroup"]).command("duty@moyaey", async (ctx) => {
-  await ctx.reply("Сегодня дежурит Моисеев Артем и Моисеев Артем");
+  await ctx.reply("Сегодня дежурит Ракутунавалуна Равелумпара Ромео и Моисеев Артем");
 });
 
 bot.chatType("group").on("message", async (ctx) => {
