@@ -1,4 +1,11 @@
-import { Bot, Context, InlineKeyboard, session, SessionFlavor } from "grammy";
+import {
+  Bot,
+  Context,
+  GrammyError,
+  InlineKeyboard,
+  session,
+  SessionFlavor,
+} from "grammy";
 import { DenoKVAdapter } from "grammy/storages/denokv";
 import { getReply, isAllowed, setAllowed, setReply } from "./db.ts";
 
@@ -25,13 +32,17 @@ bot.chatType(["group", "supergroup"]).command("duty@moyaey", async (ctx) => {
 });
 
 bot.chatType(["group", "supergroup"]).on("message", async (ctx) => {
-  console.log(ctx.chat.id);
-  if (!(await isAllowed(ctx.from.id))) {
-    await ctx.api.sendMessage(
-      authorId,
-      `${ctx.from.first_name} ${ctx.from.id}`,
-    );
-    await ctx.deleteMessage();
+  try {
+    const _member = await ctx.getChatMember(ctx.from.id);
+  } catch (error) {
+    const allowed = await isAllowed(ctx.from.id);
+    if (error instanceof GrammyError && !allowed) {
+      await ctx.api.sendMessage(
+        authorId,
+        `${ctx.from.first_name} ${ctx.from.id}`,
+      );
+      await ctx.deleteMessage();
+    }
   }
 });
 
