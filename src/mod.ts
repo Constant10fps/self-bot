@@ -1,6 +1,6 @@
 import { Bot, Context, InlineKeyboard, session, SessionFlavor } from "grammy";
 import { DenoKVAdapter } from "grammy/storages/denokv";
-import { getReply, setReply } from "./db.ts";
+import { getReply, isAllowed, setAllowed, setReply } from "./db.ts";
 
 interface SessionData {
   status?: "msg";
@@ -19,13 +19,21 @@ bot.use(session(
 ));
 
 bot.chatType(["group", "supergroup"]).command("duty@moyaey", async (ctx) => {
-  await ctx.reply("Сегодня дежурит Ракутунавалуна Равелумпара Ромео и Моисеев Артем");
+  await ctx.reply(
+    "Сегодня дежурит Ракутунавалуна Равелумпара Ромео и Моисеев Артем",
+  );
 });
 
-bot.chatType("group").on("message", async (ctx) => {
-  if (ctx.from.id < 0) {
+bot.chatType(["group", "supergroup"]).on("message", async (ctx) => {
+  if (ctx.from.id < 0 && !(await isAllowed(ctx.from.id))) {
     await ctx.deleteMessage();
   }
+});
+
+bot.chatType("private").command("allow", async (ctx) => {
+  const id = Number(ctx.match);
+  await setAllowed(id);
+  await ctx.react("⚡");
 });
 
 bot.chatType("private").command("ping", async (ctx) => {

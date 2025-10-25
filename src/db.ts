@@ -24,3 +24,9 @@ export const setReply = async (
 
 export const removeReply = async (chatId: number, msgId: number) =>
   await kv.delete(replyKey(chatId, msgId));
+
+export const setAllowed = async (id: number) =>
+  await kv.set(["channel", id], true);
+
+export const isAllowed = async (id: number) =>
+  (await kv.get<boolean>(["channel", id])).value;
