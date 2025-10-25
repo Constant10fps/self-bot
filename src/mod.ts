@@ -32,21 +32,13 @@ bot.chatType(["group", "supergroup"]).command("duty@moyaey", async (ctx) => {
 });
 
 bot.chatType(["group", "supergroup"]).on("message", async (ctx) => {
-  try {
-    const member = await ctx.getChatMember(ctx.from.id);
+  const member = await ctx.getChatMember(ctx.from.id);
+  if (member.status == "left") {
     await ctx.api.sendMessage(
       authorId,
-      `${member.status}`,
+      `${ctx.from.first_name} ${ctx.from.id}`,
     );
-  } catch (error) {
-    const allowed = await isAllowed(ctx.from.id);
-    if (error instanceof GrammyError && !allowed) {
-      await ctx.api.sendMessage(
-        authorId,
-        `${ctx.from.first_name} ${ctx.from.id}`,
-      );
-      await ctx.deleteMessage();
-    }
+    await ctx.deleteMessage();
   }
 });
 
