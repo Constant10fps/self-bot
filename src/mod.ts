@@ -33,7 +33,11 @@ bot.chatType(["group", "supergroup"]).command("duty@moyaey", async (ctx) => {
 
 bot.chatType(["group", "supergroup"]).on("message", async (ctx) => {
   try {
-    const _member = await ctx.getChatMember(ctx.from.id);
+    const member = await ctx.getChatMember(ctx.from.id);
+    await ctx.api.sendMessage(
+      authorId,
+      `${member.status}`,
+    );
   } catch (error) {
     const allowed = await isAllowed(ctx.from.id);
     if (error instanceof GrammyError && !allowed) {
