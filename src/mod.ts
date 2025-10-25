@@ -25,6 +25,7 @@ bot.chatType(["group", "supergroup"]).command("duty@moyaey", async (ctx) => {
 });
 
 bot.chatType(["group", "supergroup"]).on("message", async (ctx) => {
+  console.log(ctx.chat.id);
   if (!(await isAllowed(ctx.from.id))) {
     await ctx.api.sendMessage(
       authorId,
@@ -44,6 +45,11 @@ bot.chatType("private").command("allow_group", async (ctx) => {
   const id = Number(ctx.match);
   await setAllowed(id);
   await ctx.react("⚡");
+});
+
+bot.chatType("private").command("get", async (ctx) => {
+  const [chatId, userId] = ctx.match.split(" ").map(Number);
+  await ctx.reply((await ctx.api.getChatMember(chatId, userId)).status);
 });
 
 bot.chatType("private").command("ping", async (ctx) => {
