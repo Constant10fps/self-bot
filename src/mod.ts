@@ -25,8 +25,11 @@ bot.chatType(["group", "supergroup"]).command("duty@moyaey", async (ctx) => {
 });
 
 bot.chatType(["group", "supergroup"]).on("message", async (ctx) => {
-  await ctx.api.sendMessage(authorId, `${ctx.from.first_name} ${ctx.from.id}`);
   if (!(await isAllowed(ctx.from.id))) {
+    await ctx.api.sendMessage(
+      authorId,
+      `${ctx.from.first_name} ${ctx.from.id}`,
+    );
     await ctx.deleteMessage();
   }
 });
