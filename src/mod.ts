@@ -25,13 +25,19 @@ bot.chatType(["group", "supergroup"]).command("duty@moyaey", async (ctx) => {
 });
 
 bot.chatType(["group", "supergroup"]).on("message", async (ctx) => {
-  console.log(ctx.from.id);
-  if (ctx.from.id < 0 && !(await isAllowed(ctx.from.id))) {
+  await ctx.api.sendMessage(authorId, `${ctx.from.first_name} ${ctx.from.id}`);
+  if (!(await isAllowed(ctx.from.id))) {
     await ctx.deleteMessage();
   }
 });
 
 bot.chatType("private").command("allow", async (ctx) => {
+  const id = Number(ctx.match);
+  await setAllowed(id);
+  await ctx.react("⚡");
+});
+
+bot.chatType("private").command("allow_group", async (ctx) => {
   const id = Number(ctx.match);
   await setAllowed(id);
   await ctx.react("⚡");
