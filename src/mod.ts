@@ -33,7 +33,7 @@ bot.chatType(["group", "supergroup"]).command("duty@moyaey", async (ctx) => {
 
 bot.chatType(["group", "supergroup"]).on("message", async (ctx) => {
   const member = await ctx.getChatMember(ctx.from.id);
-  if (member.status == "left") {
+  if (member.status == "left" && !isAllowed(ctx.from.id)) {
     await ctx.api.sendMessage(
       authorId,
       `${ctx.from.first_name} ${ctx.from.id}`,
